@@ -1,0 +1,33 @@
+name: campana_vacunacion_2026
+description: "Campaña de Vacunación Canina y Felina 2026"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.12.1 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  provider: ^6.1.2
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  firebase_core: ^3.1.0
+  firebase_auth: ^5.1.0
+  cloud_firestore: ^5.0.1
+  firebase_storage: ^12.0.1
+  geolocator: ^13.0.1
+  image_picker: ^1.1.2
+  connectivity_plus: ^6.0.3
+  intl: ^0.19.0
+  uuid: ^4.3.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "607480746612",
+    "project_id": "campana-vacunacion-2026",
+    "storage_bucket": "campana-vacunacion-2026.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:607480746612:android:e5764f84f7c8fdb1907721",
+        "android_client_info": {
+          "package_name": "com.vacunacion.app.campana_vacunacion_2026"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAa5cTccstSh-CgaafmTUbl2uz1HoyvJnM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
