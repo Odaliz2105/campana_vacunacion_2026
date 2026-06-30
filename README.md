@@ -105,5 +105,26 @@ flutter build apk --release
 ## ✅ Resultados obtenidos y Valor Agregado
 1. **Logística Digitalizada:** Eliminación de los registros en papel.
 2. **Control Georreferenciado:** Ubicación GPS automática para rastrear exactamente dónde se aplicó cada vacuna.
-3. **Resiliencia (Offline):** El personal de campo puede seguir trabajando incluso en zonas rurales o puntos ciegos de red celular gracias a **Hive**.
 4. **Dashboards en Tiempo Real:** Toma de decisiones informada para los coordinadores municipales.
+
+## 📷 Capturas del sistema
+
+| Splash Screen | Ícono |
+| :---: | :---: |
+| *[imagen]* | *[imagen]* |
+
+| Login | Dashboard |
+| :---: | :---: |
+| *[imagen]* | *[imagen]* |
+
+| Gestión de Sectores | Creación de Sectores |
+| :---: | :---: |
+| *[imagen]* | *[imagen]* |
+
+| Coordinadores de Brigada | Formulario para Coordinador |
+| :---: | :---: |
+| *[imagen]* | *[imagen]* |
+
+| Formulario de Vacunación | Fotografía y GPS |
+| :---: | :---: |
+| *[imagen]* | *[imagen]* |
