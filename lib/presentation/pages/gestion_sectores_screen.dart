@@ -86,14 +86,23 @@ class _GestionSectoresScreenState extends State<GestionSectoresScreen> {
                           descCtrl.text,
                         );
                       }
-                      if (success && mounted) {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(mgmt.successMessage ?? 'Éxito'),
-                            backgroundColor: AppColors.success,
-                          ),
-                        );
+                      if (mounted) {
+                        if (success) {
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(mgmt.successMessage ?? 'Éxito'),
+                              backgroundColor: AppColors.success,
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(mgmt.errorMessage ?? 'Error al guardar'),
+                              backgroundColor: AppColors.error,
+                            ),
+                          );
+                        }
                       }
                     },
                   ),

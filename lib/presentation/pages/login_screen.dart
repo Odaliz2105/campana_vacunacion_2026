@@ -41,11 +41,12 @@ class _LoginScreenState extends State<LoginScreen> {
       await Future.delayed(const Duration(milliseconds: 500));
       if (!mounted) return;
       final updatedAuth = context.read<AuthProvider>();
-      if (updatedAuth.needsPasswordChange) {
-        Navigator.pushReplacementNamed(context, AppRoutes.changePassword);
-      } else {
-        _navigateToDashboard(updatedAuth.currentUser?.rol);
-      }
+      // TODO: Reactivar cambio de contraseña obligatorio en producción
+      // if (updatedAuth.needsPasswordChange) {
+      //   Navigator.pushReplacementNamed(context, AppRoutes.changePassword);
+      // } else {
+      _navigateToDashboard(updatedAuth.currentUser?.rol);
+      // }
     } else {
       _showError(auth.errorMessage ?? 'Error al iniciar sesión');
     }
@@ -54,6 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _navigateToDashboard(String? rol) {
     switch (rol) {
       case AppConstants.rolCoordinadorCampana:
+      case 'Administrador': // Soporte para el rol guardado en Firestore
         Navigator.pushReplacementNamed(context, AppRoutes.dashboardCoordinadorCampana);
         break;
       case AppConstants.rolCoordinadorBrigada:

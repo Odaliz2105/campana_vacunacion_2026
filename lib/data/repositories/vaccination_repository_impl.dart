@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/services/connectivity_service.dart';
 import '../../domain/entities/vaccination_entity.dart';
@@ -26,24 +27,67 @@ class VaccinationRepositoryImpl implements VaccinationRepository {
     final hasInternet = await _connectivity.hasConnection();
     final id = _uuid.v4();
 
+    debugPrint('=== [VaccinationRepo] saveVaccination START ===');
+    debugPrint('hasInternet: $hasInternet | hasPhoto: ${photoFile != null}');
+    debugPrint('sectorId: ${vaccination.sectorId} | vacunadorId: ${vaccination.vacunadorId}');
+
     if (hasInternet) {
-      // ── Con conexión: subir foto y guardar en Firestore ─────────────
-      String? fotoUrl;
-      if (photoFile != null) {
-        final fileName = 'vac_${id}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-        fotoUrl = await _remote.uploadPhoto(photoFile, fileName);
+      try {
+        // ── Con conexión: subir foto y guardar en Firestore ─────────────
+        String? fotoUrl;
+        if (photoFile != null) {
+          final fileName =
+              'vac_${id}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          debugPrint('[VaccinationRepo] Subiendo foto: $fileName');
+          try {
+            fotoUrl = await _remote.uploadPhoto(photoFile, fileName);
+            debugPrint('[VaccinationRepo] Foto subida. fotoUrl: $fotoUrl');
+          } catch (photoError) {
+            debugPrint('[VaccinationRepo] ⚠️ Aviso: Storage falló (la foto quedó pendiente). Guardando registro en Firestore sin foto online.');
+            debugPrint('[VaccinationRepo] Error Storage: $photoError');
+            fotoUrl = photoFile.path; // Ruta local como fallback temporal
+          }
+        }
+
+        final model = VaccinationModel.fromEntity(
+          vaccination.copyWith(id: id, fotoUrl: fotoUrl, sincronizado: true),
+        );
+
+        debugPrint('[VaccinationRepo] Guardando en Firestore...');
+        final firestoreId = await _remote.saveVaccinationToFirestore(model);
+        debugPrint('[VaccinationRepo] Firestore OK. ID: $firestoreId');
+
+        // Copia local con sincronizado=true para historial offline
+        await _local.saveVaccination(
+          VaccinationModel.fromEntity(
+            model.copyWith(id: firestoreId, sincronizado: true),
+          ),
+        );
+
+        debugPrint('=== [VaccinationRepo] saveVaccination OK ===');
+        return model.copyWith(id: firestoreId);
+      } catch (e, stackTrace) {
+        debugPrint('=== [VaccinationRepo] ERROR al guardar online ===');
+        debugPrint(e.toString());
+        debugPrint('================================================');
+        
+        // ── Fallback: Guardar offline si hay fallo en Storage o Firestore ──
+        debugPrint('[VaccinationRepo] Fallback a guardado offline por fallo online');
+        final fotoLocalPath = photoFile?.path;
+        final fallbackModel = VaccinationModel.fromEntity(
+          vaccination.copyWith(
+            id: id,
+            fotoUrl: fotoLocalPath,
+            sincronizado: false,
+          ),
+        );
+        await _local.saveVaccination(fallbackModel);
+        debugPrint('=== [VaccinationRepo] Fallback offline OK. ID: $id ===');
+        return fallbackModel;
       }
-      final model = VaccinationModel.fromEntity(
-        vaccination.copyWith(id: id, fotoUrl: fotoUrl, sincronizado: true),
-      );
-      final firestoreId = await _remote.saveVaccinationToFirestore(model);
-      // También guardamos en local con sincronizado=true para el historial offline
-      await _local.saveVaccination(
-        VaccinationModel.fromEntity(model.copyWith(id: firestoreId, sincronizado: true)),
-      );
-      return model.copyWith(id: firestoreId);
     } else {
       // ── Sin conexión: guardar en Hive con ruta local de foto ─────────
+      debugPrint('[VaccinationRepo] Sin internet → guardando offline en Hive');
       final fotoLocalPath = photoFile?.path;
       final model = VaccinationModel.fromEntity(
         vaccination.copyWith(
@@ -53,6 +97,7 @@ class VaccinationRepositoryImpl implements VaccinationRepository {
         ),
       );
       await _local.saveVaccination(model);
+      debugPrint('=== [VaccinationRepo] Guardado offline OK. ID: $id ===');
       return model;
     }
   }

@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cross_file/cross_file.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import '../../core/constants/app_constants.dart';
 import '../models/vaccination_model.dart';
 import '../models/user_model.dart';
@@ -34,9 +37,7 @@ class RemoteFirebaseDatasource {
   /// Crea usuario en Firebase Auth. Se usa para que los coordinadores
   /// creen vacunadores/brigadistas sin perder su propia sesión.
   Future<String> createAuthUser(String email, String password) async {
-    // Guardamos credenciales actuales
-    final currentUser = _auth.currentUser!;
-    final currentEmail = currentUser.email!;
+
 
     // Creamos el nuevo usuario
     final cred = await _auth.createUserWithEmailAndPassword(
@@ -181,7 +182,8 @@ class RemoteFirebaseDatasource {
   Future<String> saveVaccinationToFirestore(VaccinationModel vaccination) async {
     final ref = await _db
         .collection(AppConstants.colVaccinations)
-        .add(vaccination.toFirestore());
+        .add(vaccination.toFirestore())
+        .timeout(const Duration(seconds: 30));
     return ref.id;
   }
 
@@ -189,8 +191,9 @@ class RemoteFirebaseDatasource {
     await _db
         .collection(AppConstants.colVaccinations)
         .doc(vaccination.id)
-        .update(vaccination.toFirestore());
-  }
+        .update(vaccination.toFirestore())
+        .timeout(const Duration(seconds: 30));
+  } 
 
   Future<void> deleteVaccination(String vaccinationId) async {
     await _db.collection(AppConstants.colVaccinations).doc(vaccinationId).delete();
@@ -198,14 +201,56 @@ class RemoteFirebaseDatasource {
 
   // ── Storage (imágenes) ────────────────────────────────────────────
 
-  /// Sube un archivo de imagen a Firebase Storage y retorna su URL pública
+  /// Sube una imagen a Firebase Storage y retorna su URL pública.
+  /// Usa [putData] en lugar de [putFile] para compatibilidad con Flutter Web
+  /// (dart:io File.putFile llama a Platform._operatingSystem que no existe en web).
   Future<String> uploadPhoto(File photoFile, String fileName) async {
-    final ref = _storage.ref().child('vacunaciones/$fileName');
-    final uploadTask = await ref.putFile(
-      photoFile,
-      SettableMetadata(contentType: 'image/jpeg'),
-    );
-    return await uploadTask.ref.getDownloadURL();
+    try {
+      debugPrint('📤 [Storage] Iniciando subida: $fileName');
+      final ref = _storage.ref().child('vacunaciones/$fileName');
+
+      // En Android/iOS usamos putFile (ruta nativa) — evita el error HTTP 404
+      // "terminated upload session" que ocurre con putData en el SDK nativo.
+      // En web usamos putData porque dart:io File no existe en el navegador.
+      final TaskSnapshot snapshot;
+      if (kIsWeb) {
+        final xfile = XFile(photoFile.path);
+        final bytes = await xfile.readAsBytes();
+        debugPrint('📤 [Storage] Bytes leídos: ${bytes.length} bytes (web)');
+        snapshot = await ref
+            .putData(bytes, SettableMetadata(contentType: 'image/jpeg'))
+            .timeout(const Duration(seconds: 60));
+      } else {
+        // Mobile: putFile usa la ruta nativa del sistema de archivos
+        debugPrint('📤 [Storage] Subiendo con putFile (mobile): ${photoFile.path}');
+        snapshot = await ref
+            .putFile(photoFile, SettableMetadata(contentType: 'image/jpeg'))
+            .timeout(const Duration(seconds: 60));
+      }
+
+
+      debugPrint('📤 [Storage] Subida completa. Obteniendo URL...');
+
+      // URL con timeout separado
+      final url = await snapshot.ref
+          .getDownloadURL()
+          .timeout(const Duration(seconds: 15));
+
+      debugPrint('✅ [Storage] URL obtenida: $url');
+      return url;
+    } on FirebaseException catch (e, st) {
+      debugPrint('❌ [Storage] FirebaseException code=${e.code} msg=${e.message}');
+      debugPrint(st.toString());
+      throw Exception('Error de Storage [${e.code}]: ${e.message}');
+    } on TimeoutException catch (e, st) {
+      debugPrint('❌ [Storage] Timeout al subir foto: $e');
+      debugPrint(st.toString());
+      throw Exception('Tiempo de espera agotado al subir la foto');
+    } catch (e, st) {
+      debugPrint('❌ [Storage] Error inesperado al subir foto: $e');
+      debugPrint(st.toString());
+      throw Exception('Error al subir la foto: $e');
+    }
   }
 
   /// Elimina una foto de Storage por su URL

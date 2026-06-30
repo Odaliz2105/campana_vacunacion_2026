@@ -110,7 +110,7 @@ class VaccinationProvider extends ChangeNotifier {
       _state = VaccinationState.success;
       _successMessage = saved.sincronizado
           ? 'Vacunación registrada correctamente'
-          : 'Vacunación guardada sin conexión. Se sincronizará automáticamente';
+          : 'Registro guardado localmente. Storage no disponible.';
       notifyListeners();
       return true;
     } catch (e) {

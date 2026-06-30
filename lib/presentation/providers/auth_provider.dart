@@ -53,19 +53,37 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> _loadUserProfile(String uid) async {
-    _status = AuthStatus.loading;
-    notifyListeners();
-    try {
-      _currentUser = await _userRepo.getUserById(uid);
-      _status = _currentUser != null
-          ? AuthStatus.authenticated
-          : AuthStatus.unauthenticated;
-    } catch (e) {
-      _status = AuthStatus.error;
-      _errorMessage = 'Error cargando perfil de usuario';
-    }
-    notifyListeners();
+  _status = AuthStatus.loading;
+  notifyListeners();
+
+  try {
+    debugPrint('===== CARGANDO PERFIL =====');
+    debugPrint('UID: $uid');
+
+    // Forzar que el token de Auth esté disponible para Firestore antes de leer.
+    // Sin esto, authStateChanges puede disparar antes de que Firestore reciba
+    // el token, causando PERMISSION_DENIED aunque el usuario esté autenticado.
+    await FirebaseAuth.instance.currentUser?.getIdToken(true);
+
+    _currentUser = await _userRepo.getUserById(uid);
+
+    debugPrint('Usuario cargado: $_currentUser');
+
+    _status = _currentUser != null
+        ? AuthStatus.authenticated
+        : AuthStatus.unauthenticated;
+  } catch (e, stackTrace) {
+    debugPrint('=========== ERROR PERFIL ===========');
+    debugPrint(e.toString());
+    debugPrint(stackTrace.toString());
+    debugPrint('====================================');
+
+    _status = AuthStatus.error;
+    _errorMessage = e.toString();
   }
+
+  notifyListeners();
+}
 
   /// Inicia sesión con email y contraseña
   Future<bool> login(String email, String password) async {
@@ -74,12 +92,27 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
     try {
       await _firebase.signIn(email, password);
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await _loadUserProfile(user.uid);
+      }
       return true;
     } on FirebaseAuthException catch (e) {
       _status = AuthStatus.error;
       _errorMessage = _parseAuthError(e.code);
       notifyListeners();
       return false;
+    }
+  }
+
+  /// Fuerza la recarga del perfil desde Firestore.
+  /// Llamar cuando [currentUser] sea null a pesar de tener sesión activa,
+  /// por ejemplo tras recreación de actividad Android (vuelta de cámara).
+  Future<void> reloadProfile() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    debugPrint('[AuthProvider] reloadProfile uid=$uid');
+    if (uid != null) {
+      await _loadUserProfile(uid);
     }
   }
 

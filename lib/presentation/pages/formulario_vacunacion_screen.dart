@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -91,16 +93,21 @@ class _FormularioVacunacionScreenState
       if (foto != null) {
         setState(() => _foto = foto);
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('================ ERROR GUARDAR ================');
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
+      debugPrint('===============================================');
+
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error al tomar la foto: $e'),
+          content: Text('Error al tomar foto: ${e.toString()}'),
           backgroundColor: AppColors.error,
         ),
       );
-    }
+    } finally {}
   }
 
   Future<void> _obtenerUbicacion() async {
@@ -110,18 +117,6 @@ class _FormularioVacunacionScreenState
       final position = await _deviceService.getCurrentPosition();
 
       if (!mounted) return;
-
-      if (position == null) {
-        setState(() => _isGettingLocation = false);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No se pudo obtener la ubicación'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-        return;
-      }
 
       setState(() {
         _latitud = position.latitude;
@@ -179,67 +174,161 @@ class _FormularioVacunacionScreenState
       return;
     }
 
-    setState(() => _isSaving = true);
+    // ── Validación de sesión: espera hasta 5s si el perfil aún está cargando
+    // (ocurre en Android cuando la actividad se recrea tras volver de la cámara)
+    var auth = context.read<AuthProvider>().currentUser;
 
-    final auth = context.read<AuthProvider>().currentUser!;
-    final vp = context.read<VaccinationProvider>();
+    if (auth == null) {
+      // ¿Firebase Auth tiene sesión activa aunque el Provider aún no cargó?
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      if (firebaseUser == null) {
+        // No hay sesión real — redirigir al login
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Sesión expirada. Por favor inicie sesión nuevamente.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
 
-    bool success;
+      // Sí hay sesión en Firebase Auth: esperar a que el Provider termine de cargar
+      debugPrint('[_guardar] Perfil aún no disponible (UID=${firebaseUser.uid}). Esperando...');
+      for (int i = 0; i < 10; i++) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (!mounted) return;
+        auth = context.read<AuthProvider>().currentUser;
+        if (auth != null) break;
+        debugPrint('[_guardar] Esperando perfil... intento ${i + 1}/10');
+      }
 
-    if (isEditing) {
-      final updated = widget.vaccinationToEdit!.copyWith(
-        propietarioNombre: _propNombreCtrl.text.trim(),
-        propietarioCedula: _propCedulaCtrl.text.trim(),
-        telefono: _telefonoCtrl.text.trim(),
-        tipoMascota: _tipoMascota,
-        nombreMascota: _mascotaNombreCtrl.text.trim(),
-        edadAproximada: _edadCtrl.text.trim(),
-        sexo: _sexo,
-        vacunaAplicada: _vacunaCtrl.text.trim(),
-        observaciones: _observacionesCtrl.text.trim(),
-        latitud: _latitud!,
-        longitud: _longitud!,
-      );
+      if (auth == null) {
+        debugPrint('[_guardar] Perfil no cargó tras 5s. Forzando reloadProfile...');
+        // El wait loop solo sondea — si _loadUserProfile ya falló, nunca ayuda.
+        // Reintentamos activamente llamando reloadProfile() que ejecuta _loadUserProfile de nuevo.
+        await context.read<AuthProvider>().reloadProfile();
+        if (!mounted) return;
 
-      success = await vp.updateVaccination(updated);
-    } else {
-      final vaccination = VaccinationEntity(
-        id: '',
-        propietarioNombre: _propNombreCtrl.text.trim(),
-        propietarioCedula: _propCedulaCtrl.text.trim(),
-        telefono: _telefonoCtrl.text.trim(),
-        tipoMascota: _tipoMascota,
-        nombreMascota: _mascotaNombreCtrl.text.trim(),
-        edadAproximada: _edadCtrl.text.trim(),
-        sexo: _sexo,
-        vacunaAplicada: _vacunaCtrl.text.trim(),
-        observaciones: _observacionesCtrl.text.trim(),
-        latitud: _latitud!,
-        longitud: _longitud!,
-        fechaRegistro: DateTime.now(),
-        sectorId: auth.sectorId!,
-        vacunadorId: auth.id,
-        sincronizado: false,
-      );
+        // Esperar hasta 3s más por si la recarga tardó
+        for (int i = 0; i < 6; i++) {
+          auth = context.read<AuthProvider>().currentUser;
+          if (auth != null) break;
+          await Future.delayed(const Duration(milliseconds: 500));
+          if (!mounted) return;
+        }
+      }
 
-      success = await vp.saveVaccination(
-        vaccination: vaccination,
-        photoFile: _foto,
-      );
+      if (auth == null) {
+        debugPrint('[_guardar] Perfil sigue null tras reintento. Estado: '
+            '${context.read<AuthProvider>().status} | '
+            'Error: ${context.read<AuthProvider>().errorMessage}');
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No se pudo cargar el perfil. Cierre y vuelva a abrir la app.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
     }
 
-    if (!mounted) return;
+    if (auth.sectorId == null || auth.sectorId!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('El usuario no tiene sector asignado'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
 
-    setState(() => _isSaving = false);
+    setState(() => _isSaving = true);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(success ? 'Guardado correctamente' : 'Error al guardar'),
-        backgroundColor: success ? AppColors.success : AppColors.error,
-      ),
-    );
+    try {
+      final vp = context.read<VaccinationProvider>();
+      bool success;
 
-    if (success) Navigator.pop(context);
+      if (isEditing) {
+        final updated = widget.vaccinationToEdit!.copyWith(
+          propietarioNombre: _propNombreCtrl.text.trim(),
+          propietarioCedula: _propCedulaCtrl.text.trim(),
+          telefono: _telefonoCtrl.text.trim(),
+          tipoMascota: _tipoMascota,
+          nombreMascota: _mascotaNombreCtrl.text.trim(),
+          edadAproximada: _edadCtrl.text.trim(),
+          sexo: _sexo,
+          vacunaAplicada: _vacunaCtrl.text.trim(),
+          observaciones: _observacionesCtrl.text.trim(),
+          latitud: _latitud!,
+          longitud: _longitud!,
+        );
+
+        success = await vp.updateVaccination(updated);
+      } else {
+        debugPrint('===== DATOS DEL USUARIO =====');
+        debugPrint('ID: ${auth.id}');
+        debugPrint('Sector: ${auth.sectorId}');
+        debugPrint('=============================');
+
+        final vaccination = VaccinationEntity(
+          id: '',
+          propietarioNombre: _propNombreCtrl.text.trim(),
+          propietarioCedula: _propCedulaCtrl.text.trim(),
+          telefono: _telefonoCtrl.text.trim(),
+          tipoMascota: _tipoMascota,
+          nombreMascota: _mascotaNombreCtrl.text.trim(),
+          edadAproximada: _edadCtrl.text.trim(),
+          sexo: _sexo,
+          vacunaAplicada: _vacunaCtrl.text.trim(),
+          observaciones: _observacionesCtrl.text.trim(),
+          latitud: _latitud!,
+          longitud: _longitud!,
+          fechaRegistro: DateTime.now(),
+          sectorId: auth.sectorId!,
+          vacunadorId: auth.id,
+          sincronizado: false,
+        );
+
+        success = await vp.saveVaccination(
+          vaccination: vaccination,
+          photoFile: _foto,
+        );
+      }
+
+      if (!mounted) return;
+
+      // Muestra el mensaje de error real del provider si el guardado falló
+      final errorMsg = vp.errorMessage;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success ? (vp.successMessage ?? 'Guardado correctamente') : (errorMsg ?? 'Error al guardar'),
+          ),
+          backgroundColor: success ? AppColors.success : AppColors.error,
+        ),
+      );
+
+      if (success) Navigator.pop(context);
+    } catch (e, stackTrace) {
+      debugPrint('================ ERROR GUARDAR ================');
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
+      debugPrint('===============================================');
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al guardar: ${e.toString()}'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
   }
 
   @override
@@ -291,7 +380,9 @@ class _FormularioVacunacionScreenState
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.location_on),
-                label: Text(_isGettingLocation ? 'Obteniendo...' : 'Obtener GPS'),
+                label: Text(
+                  _isGettingLocation ? 'Obteniendo...' : 'Obtener GPS',
+                ),
               ),
             ),
             const SizedBox(width: 10),
@@ -318,33 +409,48 @@ class _FormularioVacunacionScreenState
         const SizedBox(height: 12),
         ClipRRect(
           borderRadius: BorderRadius.circular(12),
+
           child: _foto != null
-              ? Image.file(
-                  _foto!,
-                  height: 180,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                )
-              : edit?.fotoUrl != null && edit!.fotoUrl!.isNotEmpty
-                  ? Image.network(
-                      edit.fotoUrl!,
-                      height: 180,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    )
-                  : Container(
-                      height: 180,
-                      width: double.infinity,
-                      color: Colors.grey.shade200,
-                      child: const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.image, size: 48, color: Colors.grey),
-                          SizedBox(height: 8),
-                          Text('Sin foto registrada'),
-                        ],
-                      ),
-                    ),
+    ? kIsWeb
+        ? Container(
+            height: 180,
+            width: double.infinity,
+            color: Colors.grey.shade200,
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.image, size: 48, color: Colors.grey),
+                SizedBox(height: 8),
+                Text('Foto seleccionada'),
+              ],
+            ),
+          )
+        : Image.file(
+            _foto!,
+            height: 180,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          )
+    : edit?.fotoUrl != null && edit!.fotoUrl!.isNotEmpty
+        ? Image.network(
+            edit.fotoUrl!,
+            height: 180,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          )
+        : Container(
+            height: 180,
+            width: double.infinity,
+            color: Colors.grey.shade200,
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.image, size: 48, color: Colors.grey),
+                SizedBox(height: 8),
+                Text('Sin foto registrada'),
+              ],
+            ),
+          )
         ),
       ],
     );
@@ -382,8 +488,10 @@ class _FormularioVacunacionScreenState
             labelText: 'Nombre mascota',
             border: OutlineInputBorder(),
           ),
-          validator: (value) =>
-              _requiredValidator(value, 'El nombre de la mascota es obligatorio'),
+          validator: (value) => _requiredValidator(
+            value,
+            'El nombre de la mascota es obligatorio',
+          ),
         ),
         const SizedBox(height: 14),
         TextFormField(
@@ -393,12 +501,14 @@ class _FormularioVacunacionScreenState
             labelText: 'Edad aproximada',
             border: OutlineInputBorder(),
           ),
-          validator: (value) =>
-              _requiredValidator(value, 'La edad aproximada es obligatoria'),
+          validator: (value) => _requiredValidator(
+            value,
+            'La edad aproximada es obligatoria',
+          ),
         ),
         const SizedBox(height: 14),
         DropdownButtonFormField<String>(
-          value: _sexo,
+          initialValue: _sexo,
           decoration: const InputDecoration(
             labelText: 'Sexo',
             border: OutlineInputBorder(),
@@ -428,8 +538,10 @@ class _FormularioVacunacionScreenState
             labelText: 'Nombre propietario',
             border: OutlineInputBorder(),
           ),
-          validator: (value) =>
-              _requiredValidator(value, 'El propietario es obligatorio'),
+          validator: (value) => _requiredValidator(
+            value,
+            'El propietario es obligatorio',
+          ),
         ),
         const SizedBox(height: 14),
         TextFormField(
@@ -439,8 +551,10 @@ class _FormularioVacunacionScreenState
             labelText: 'Cédula',
             border: OutlineInputBorder(),
           ),
-          validator: (value) =>
-              _requiredValidator(value, 'La cédula es obligatoria'),
+          validator: (value) => _requiredValidator(
+            value,
+            'La cédula es obligatoria',
+          ),
         ),
         const SizedBox(height: 14),
         TextFormField(
@@ -450,8 +564,10 @@ class _FormularioVacunacionScreenState
             labelText: 'Teléfono',
             border: OutlineInputBorder(),
           ),
-          validator: (value) =>
-              _requiredValidator(value, 'El teléfono es obligatorio'),
+          validator: (value) => _requiredValidator(
+            value,
+            'El teléfono es obligatorio',
+          ),
         ),
       ],
     );
@@ -469,8 +585,10 @@ class _FormularioVacunacionScreenState
             labelText: 'Vacuna aplicada',
             border: OutlineInputBorder(),
           ),
-          validator: (value) =>
-              _requiredValidator(value, 'La vacuna aplicada es obligatoria'),
+          validator: (value) => _requiredValidator(
+            value,
+            'La vacuna aplicada es obligatoria',
+          ),
         ),
         const SizedBox(height: 14),
         TextFormField(

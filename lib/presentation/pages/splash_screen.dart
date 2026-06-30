@@ -52,11 +52,12 @@ class _SplashScreenState extends State<SplashScreen>
     final authProvider = context.read<AuthProvider>();
     switch (authProvider.status) {
       case AuthStatus.authenticated:
-        if (authProvider.needsPasswordChange) {
-          Navigator.pushReplacementNamed(context, AppRoutes.changePassword);
-        } else {
-          _navigateToDashboard(authProvider.currentUser?.rol);
-        }
+        // TODO: Reactivar cambio de contraseña obligatorio en producción
+        // if (authProvider.needsPasswordChange) {
+        //   Navigator.pushReplacementNamed(context, AppRoutes.changePassword);
+        // } else {
+        _navigateToDashboard(authProvider.currentUser?.rol);
+        // }
         break;
       case AuthStatus.unauthenticated:
       default:
@@ -67,6 +68,7 @@ class _SplashScreenState extends State<SplashScreen>
   void _navigateToDashboard(String? rol) {
     switch (rol) {
       case AppConstants.rolCoordinadorCampana:
+      case 'Administrador':
         Navigator.pushReplacementNamed(context, AppRoutes.dashboardCoordinadorCampana);
         break;
       case AppConstants.rolCoordinadorBrigada:
