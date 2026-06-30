@@ -1,41 +1,109 @@
-# 🐾 Campaña de Vacunación Canina y Felina 2026
+# 🐶🐱 Campaña de Vacunación Canina y Felina 2026
 
-Una aplicación móvil desarrollada en Flutter para la gestión logística y operativa de campañas de vacunación de mascotas, diseñada para funcionar en entornos con o sin conectividad a internet (Offline-First).
+Sistema móvil desarrollado en Flutter para la gestión logística y operativa de campañas municipales de vacunación para perros y gatos.
 
-## 🚀 Características Principales
+El sistema implementa un esquema de acceso basado en roles jerárquicos, permitiendo administrar sectores, coordinadores, vacunadores y registros de vacunación con soporte **offline-first**, almacenamiento local seguro y sincronización en tiempo real mediante Firebase.
 
-*   **Arquitectura de Roles**: Separa las funciones entre Administradores (Coordinadores) y Vacunadores.
-*   **Modo Offline-First**: Si no hay conexión a internet (o si los servidores fallan), la aplicación guarda los registros localmente en el dispositivo usando Hive, permitiendo al vacunador seguir trabajando ininterrumpidamente.
-*   **Dashboard Estadístico**: Gráficos en tiempo real que permiten a los administradores monitorear el progreso de la campaña, separando estadísticas por especie (canino/felino) y por sector.
-*   **Gestión de Sectores y Usuarios**: Los administradores pueden crear zonas geográficas (sectores) y asignar vacunadores a estas áreas de manera dinámica.
+## 👩‍💻 Autora / Desarrolladora
+*   👩 **Odaliz Aracely** *(O reemplaza con tu nombre completo y el de tus compañeros)*
 
-## 📱 Flujo de la Aplicación
+## 🚀 Tecnologías utilizadas
 
-La aplicación está dividida en dos grandes flujos de trabajo según el rol del usuario:
+| Tecnología | Uso |
+| :--- | :--- |
+| **Flutter & Dart** | Desarrollo de la aplicación móvil (Frontend UI/UX) |
+| **Firebase Authentication** | Autenticación segura y control de accesos por roles |
+| **Cloud Firestore** | Base de datos NoSQL en la nube |
+| **Firebase Storage** | Almacenamiento de fotografías de las mascotas |
+| **Hive** | Persistencia local NoSQL ultrarrápida (Modo Offline) |
+| **Geolocator** | Obtención automática de coordenadas GPS en campo |
+| **Image Picker** | Captura de fotografías desde la cámara |
+| **Provider** | Inyección de dependencias y gestión del estado |
 
-### 1. El Administrador (Coordinador de Campaña)
-Es el encargado de planificar y supervisar la logística.
-1.  **Sectores**: Lo primero que hace el administrador es crear los "Sectores" (ej. Sector Norte, Parque Central).
-2.  **Vacunadores**: Una vez creados los sectores, el administrador registra a los Vacunadores en el sistema, y a cada uno le **asigna un sector**.
-3.  **Monitoreo**: A través del Dashboard, el administrador puede ver métricas clave (Total de vacunaciones, distribución de perros vs gatos, y métricas segmentadas por cada sector).
+## 👥 Roles del sistema
 
-### 2. El Vacunador
-Es el personal de campo que interactúa con las mascotas.
-1.  **Ingreso**: Inicia sesión con las credenciales dadas por el administrador.
-2.  **Registro**: Al estar previamente asignado a un sector, el vacunador no pierde tiempo seleccionando dónde está. Llena el formulario rápidamente con los datos de la mascota (nombre, tipo, sexo, edad) y del propietario.
-3.  **Trabajo Offline**: Al presionar "Guardar", la aplicación evalúa la conexión. Si no hay internet, guarda el registro de forma segura en la memoria del celular. Si hay internet, lo sincroniza inmediatamente a la nube.
+| Rol | Funciones |
+| :--- | :--- |
+| 👨‍💼 **Coordinador de Campaña (Admin)** | Gestiona sectores, crea cuentas para coordinadores de brigada y visualiza estadísticas globales en su Dashboard. |
+| 👷 **Coordinador de Brigada** | Administra los vacunadores de su zona asignada, revisa registros y consulta los indicadores específicos de su brigada. |
+| 💉 **Vacunador** | Registra vacunaciones en campo, captura fotografía y ubicación GPS. Su interfaz está optimizada para rapidez y funciona sin internet. |
 
-## 🛠️ Tecnologías y Arquitectura
+## ✨ Funcionalidades principales
 
-*   **Frontend**: Flutter (Dart) con enfoque en UI moderna.
-*   **Backend (BaaS)**: Firebase Authentication y Cloud Firestore.
-*   **Persistencia Local**: Hive (Base de datos NoSQL ultrarrápida para Flutter).
-*   **Arquitectura**: Clean Architecture simplificada + Provider para inyección de dependencias y manejo de estado.
-*   **Patrón Repository**: Se abstrae la lógica de datos, permitiendo un "fallback" inteligente entre `RemoteFirebaseDatasource` y `LocalVaccinationDatasource`.
+*   ✅ **Inicio de sesión con autenticación basada en roles** (Enrutamiento dinámico).
+*   ✅ **Cambio obligatorio de contraseña** en el primer ingreso por seguridad.
+*   ✅ **Recuperación de contraseña** integrada.
+*   ✅ **CRUD completo** de usuarios y sectores según los permisos del rol.
+*   ✅ **Captura automática de datos de campo:**
+    *   📷 Fotografía de la mascota
+    *   📍 Coordenadas GPS exactas
+    *   🕒 Fecha y hora automáticas
+*   ✅ **Dashboard Estadístico Dinámico** con gráficas e indicadores por:
+    *   Total de vacunaciones
+    *   Especies (Canino / Felino)
+    *   Rendimiento por Sectores
+*   ✅ **Funcionamiento Offline-First:** Uso de Hive local como capa de seguridad si falla la red, con sincronización posterior.
+*   ✅ **Splash Screen personalizado.**
+*   ✅ **Ícono nativo para Android** (Generado con `flutter_launcher_icons`).
 
-## ⚙️ Configuración (Para Desarrollo)
+## ⚙️ Instalación y Configuración
 
-1. Clona el repositorio y ejecuta `flutter pub get`.
-2. Asegúrate de tener configurado tu proyecto en Firebase.
-3. Verifica que las reglas de tu Firestore Database estén configuradas correctamente (`vaccinations`, `users`, `sectors`).
-4. Ejecuta con `flutter run`.
+### 1️⃣ Clonar el repositorio
+```bash
+git clone [URL_DE_TU_REPOSITORIO_AQUI]
+```
+
+### 2️⃣ Instalar dependencias
+```bash
+flutter pub get
+```
+
+### 3️⃣ Inicializar Firebase
+Asegúrate de que el archivo `firebase_options.dart` esté generado y configurado en `lib/main.dart`:
+```dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  await Hive.initFlutter();
+  await Hive.openBox<String>(AppConstants.hiveBoxVaccinations);
+  runApp(const MyApp());
+}
+```
+
+## 🎨 Personalización de la aplicación
+
+### 📱 Ícono de la App
+El ícono moderno de perro y gato fue configurado mediante `flutter_launcher_icons`. Para regenerarlo:
+```bash
+flutter pub run flutter_launcher_icons
+```
+
+## ▶️ Ejecución
+
+**Ejecutar la aplicación en modo debug:**
+```bash
+flutter run
+```
+
+**Generar APK para producción:**
+```bash
+flutter build apk --release
+```
+
+## 🔐 Credenciales de prueba
+
+| Rol | Usuario | Contraseña |
+| :--- | :--- | :--- |
+| 👨‍💼 **Coordinador de Campaña** | `admin@vacunacion.com` | `12345678` *(o la clave que hayas configurado)* |
+| 👷 **Coordinador de Brigada** | *(crear uno de prueba)* | `Ecuador2026` |
+| 💉 **Vacunador** | *(crear uno de prueba)* | `Ecuador2026` |
+
+*(Nota: En producción, el sistema exige el cambio de la clave genérica "Ecuador2026").*
+
+## ✅ Resultados obtenidos y Valor Agregado
+1. **Logística Digitalizada:** Eliminación de los registros en papel.
+2. **Control Georreferenciado:** Ubicación GPS automática para rastrear exactamente dónde se aplicó cada vacuna.
+3. **Resiliencia (Offline):** El personal de campo puede seguir trabajando incluso en zonas rurales o puntos ciegos de red celular gracias a **Hive**.
+4. **Dashboards en Tiempo Real:** Toma de decisiones informada para los coordinadores municipales.
