@@ -115,30 +115,39 @@ flutter build apk --release
 
 ## 📷 Capturas del sistema
 
-Splash Screen 
+### Splash Screen 
+
 <img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/811b28f5-9331-442e-81e5-1d6d502fe2a2" />
 
-Ícono 
+### Ícono 
+
 <img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/b2909ab8-05c5-4758-a1ac-d61d958e4eff" />
 
-Login 
+### Login 
+
 <img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/b8f3e15b-8b36-4cbf-9b24-0a5bc2e812e8" />
 
-Dashboard 
+### Dashboard 
+
 <img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/f637a8e2-8542-40e4-abe6-600452c529ab" />
 
 <img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/4b84a428-ad23-49e6-bae2-4bc87d986bda" />
 
-Gestión de Sectores 
+
+### Gestión de Sectores 
+
 <img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/cb39f964-b648-4d71-b136-c6d655fd169f" />
 
-Creación de Sectores 
+### Creación de Sectores 
+
 <img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/0e30b381-7139-4c89-8cec-fa667d917dc6" />
 
-Coordinadores de Brigada 
+### Coordinadores de Brigada 
+
 <img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/3d8f59d5-322b-4c33-a91a-e4a379690158" />
 
-Formulario para Coordinador 
+### Formulario para Coordinador 
+
 <img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/aca71c0c-a28b-48a1-86c0-1717a1b84504" />
 
 | Formulario de Vacunación | Fotografía y GPS |
