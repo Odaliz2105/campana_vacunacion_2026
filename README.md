@@ -115,25 +115,21 @@ flutter build apk --release
 
 ## 📷 Capturas del sistema
 
-| Splash Screen | Ícono |
-| :---: | :---: |
-| *[<img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/d48566ec-5134-46f0-9ab8-4355b8335b41" />
-]* | *[<img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/2b4830cc-3f12-43cc-b423-071890765cdc" />
-]* |
+Splash Screen 
+Ícono 
 
-| Login | Dashboard |
-| :---: | :---: |
-| *[<img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/2fc43d6f-8e11-44ee-90b2-cf5ffa62f5d6" />
-]* | *[<img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/69237111-a0d4-40fb-b634-40fb2f9ad202" />
-]* |
 
-| Gestión de Sectores | Creación de Sectores |
-| :---: | :---: |
-| *[imagen]* | *[imagen]* |
+Login 
+Dashboard 
 
-| Coordinadores de Brigada | Formulario para Coordinador |
-| :---: | :---: |
-| *[imagen]* | *[imagen]* |
+
+Gestión de Sectores 
+Creación de Sectores 
+
+
+Coordinadores de Brigada 
+Formulario para Coordinador 
+
 
 | Formulario de Vacunación | Fotografía y GPS |
 | :---: | :---: |
