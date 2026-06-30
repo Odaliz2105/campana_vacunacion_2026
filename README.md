@@ -150,6 +150,17 @@ flutter build apk --release
 
 <img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/aca71c0c-a28b-48a1-86c0-1717a1b84504" />
 
-| Formulario de Vacunación | Fotografía y GPS |
-| :---: | :---: |
-| *[imagen]* | *[imagen]* |
+### Dasboard Cordinador
+
+<img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/0b4681bb-780c-474e-bd38-039a5fa74107" />
+
+### Formulario Vacunación Cordinador
+<img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/e8ed7db2-f4b5-44c1-b600-51a087bc84a7" />
+
+<img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/326af8cd-c5f4-4f15-9098-643610427298" />
+
+
+### Fotografía y GPS 
+<img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/8a5fdbf5-c21f-4668-b5e6-3af59ceabf3d" />
+
+
