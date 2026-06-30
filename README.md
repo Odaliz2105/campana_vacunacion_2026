@@ -117,11 +117,15 @@ flutter build apk --release
 
 | Splash Screen | Ícono |
 | :---: | :---: |
-| *[imagen]* | *[imagen]* |
+| *[<img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/d48566ec-5134-46f0-9ab8-4355b8335b41" />
+]* | *[<img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/2b4830cc-3f12-43cc-b423-071890765cdc" />
+]* |
 
 | Login | Dashboard |
 | :---: | :---: |
-| *[imagen]* | *[imagen]* |
+| *[<img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/2fc43d6f-8e11-44ee-90b2-cf5ffa62f5d6" />
+]* | *[<img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/69237111-a0d4-40fb-b634-40fb2f9ad202" />
+]* |
 
 | Gestión de Sectores | Creación de Sectores |
 | :---: | :---: |
