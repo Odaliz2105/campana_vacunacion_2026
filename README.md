@@ -5,8 +5,7 @@ Sistema móvil desarrollado en Flutter para la gestión logística y operativa d
 El sistema implementa un esquema de acceso basado en roles jerárquicos, permitiendo administrar sectores, coordinadores, vacunadores y registros de vacunación con soporte **offline-first**, almacenamiento local seguro y sincronización en tiempo real mediante Firebase.
 
 ## 👩‍💻 Autora / Desarrolladora
-*   👩 **Odaliz Aracely** *(O reemplaza con tu nombre completo y el de tus compañeros)*
-
+*   👩 **Odaliz Balseca Valencia ** 
 ## 🚀 Tecnologías utilizadas
 
 | Tecnología | Uso |
