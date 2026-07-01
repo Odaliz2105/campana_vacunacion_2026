@@ -108,6 +108,15 @@ flutter build apk --release
 
 ## Base de Datos en Firebase
 
+<img width="1597" height="736" alt="image" src="https://github.com/user-attachments/assets/6bcfc6a4-6a53-4dac-bfe6-3bb1e5e6e403" />
+
+
+<img width="1583" height="723" alt="image" src="https://github.com/user-attachments/assets/74dd7e1e-b77c-47ad-bca7-98b84939c999" />
+
+
+<img width="1582" height="735" alt="image" src="https://github.com/user-attachments/assets/4ff9a460-8e8d-44fb-8447-c8deb4c3e43b" />
+
+
 
 ## Link del Video Youtube 
 
