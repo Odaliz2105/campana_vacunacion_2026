@@ -119,8 +119,10 @@ flutter build apk --release
 
 
 ## Link del Video Youtube 
+https://epnecuador-my.sharepoint.com/:f:/g/personal/odaliz_balseca_epn_edu_ec/IgAakiAwgXtARKNiosYXTP-5Ac8Dll-8xy6hLADXBE8UyR8?e=cmXfWe
 
 ## Link APK 
+https://epnecuador-my.sharepoint.com/:f:/g/personal/odaliz_balseca_epn_edu_ec/IgAakiAwgXtARKNiosYXTP-5Ac8Dll-8xy6hLADXBE8UyR8?e=cmXfWe
 
 ## 📷 Capturas del sistema
 
